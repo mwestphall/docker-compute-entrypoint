@@ -18,6 +18,7 @@ BOSCO_KEY=/etc/osg/bosco.key
 BOSCO_CERT=${BOSCO_KEY}-cert.pub
 ENDPOINT_CONFIG=/etc/endpoints.ini
 KNOWN_HOSTS=/etc/osg/ssh_known_hosts
+AUTHORIZED_KEYS=/etc/osg/ssh_authorized_keys
 SKIP_WN_INSTALL=no
 
 function errexit {
@@ -74,6 +75,12 @@ setup_user_ssh () {
   ssh_key=$ssh_dir/id_rsa
   cp $BOSCO_KEY $ssh_key
   chmod 600 $ssh_key
+
+  # copy authorized_keys
+  authorized_keys=$ssh_dir/authorized_keys
+  cp $AUTHORIZED_KEYS $authorized_keys
+  chmod 600 $authorized_keys
+
   # HACK: Symlink the Bosco key to the location expected by
   # bosco_cluster so it doesn't go and try to generate a new one
   ln -s $ssh_key $ssh_dir/bosco_key.rsa
