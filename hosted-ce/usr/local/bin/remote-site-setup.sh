@@ -72,9 +72,9 @@ setup_user_ssh () {
   chmod 700 $ssh_dir
 
   # copy Bosco key
-  ssh_key=$ssh_dir/id_rsa
-  cp $BOSCO_KEY $ssh_key
-  chmod 600 $ssh_key
+#  ssh_key=$ssh_dir/id_rsa
+#  cp $BOSCO_KEY $ssh_key
+#  chmod 600 $ssh_key
 
   # copy authorized_keys
   authorized_keys=$ssh_dir/authorized_keys
@@ -83,22 +83,22 @@ setup_user_ssh () {
 
   # HACK: Symlink the Bosco key to the location expected by
   # bosco_cluster so it doesn't go and try to generate a new one
-  ln -s $ssh_key $ssh_dir/bosco_key.rsa
+#  ln -s $ssh_key $ssh_dir/bosco_key.rsa
 
   # copy Bosco certificate
-  if [[ -f $BOSCO_CERT ]]; then
-      ssh_cert=${ssh_key}-cert.pub
-      cp $BOSCO_CERT $ssh_cert
-      chmod 600 $ssh_cert
-  fi
+#  if [[ -f $BOSCO_CERT ]]; then
+#      ssh_cert=${ssh_key}-cert.pub
+#      cp $BOSCO_CERT $ssh_cert
+#      chmod 600 $ssh_cert
+#  fi
 
   # Write user/host stanza to the global SSH config
-  cat <<EOF >> /etc/ssh/ssh_config
-Match user "$remote_user"
-  IdentityFile $ssh_key
-  ${extra_config}
+#   cat <<EOF >> /etc/ssh/ssh_config
+# Match user "$remote_user"
+#   IdentityFile $ssh_key
+#   ${extra_config}
 
-EOF
+# EOF
 
   chown -R "${ruser}": "$ssh_dir"
 
@@ -201,9 +201,9 @@ fi
 # Add a sentinel to simplify awk in ssh-to-login-node
 cat <<EOF >> /etc/ssh/ssh_config
 
-Host $remote_fqdn # remote login host
-  Port $remote_port
-  IdentitiesOnly yes
+# Host $remote_fqdn # remote login host
+#   Port $remote_port
+#   IdentitiesOnly yes
 
 Match localuser root
   ControlMaster auto
@@ -232,6 +232,20 @@ done
 ###################
 
 test_remote_connect () {
+    # Wait for an SSH agent forwarding socket to be established before attempting SSH
+    echo "Waiting for SSH agent forwarding to be established..."
+    MAX_RETRIES=100
+    for _ in $(seq 1 $MAX_RETRIES); do
+        if ls /tmp/ | grep 'ssh-' ; then
+            export SSH_AUTH_SOCK=$(ls /tmp/ssh-*/*agent* | head -n1)
+            echo "Got SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
+            break
+        else
+            echo "No auth socket found yet, retrying in 10 seconds..."
+            sleep 10
+        fi
+    done
+
     ssh -vvv "$1@$2" true
 }
 
