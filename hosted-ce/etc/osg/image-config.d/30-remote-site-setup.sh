@@ -18,7 +18,6 @@ BOSCO_KEY=/etc/osg/bosco.key
 BOSCO_CERT=${BOSCO_KEY}-cert.pub
 ENDPOINT_CONFIG=/etc/endpoints.ini
 KNOWN_HOSTS=/etc/osg/ssh_known_hosts
-AUTHORIZED_KEYS=/etc/osg/ssh_authorized_keys
 SKIP_WN_INSTALL=no
 
 function errexit {
@@ -75,11 +74,6 @@ setup_user_ssh () {
 #  ssh_key=$ssh_dir/id_rsa
 #  cp $BOSCO_KEY $ssh_key
 #  chmod 600 $ssh_key
-
-  # copy authorized_keys
-  authorized_keys=$ssh_dir/authorized_keys
-  cp $AUTHORIZED_KEYS $authorized_keys
-  chmod 600 $authorized_keys
 
   # HACK: Symlink the Bosco key to the location expected by
   # bosco_cluster so it doesn't go and try to generate a new one
@@ -235,9 +229,10 @@ test_remote_connect () {
     # Wait for an SSH agent forwarding socket to be established before attempting SSH
     echo "Waiting for SSH agent forwarding to be established..."
     MAX_RETRIES=100
+    SSH_SOCK_DIR=/etc/condor-ce/sshd-sock
     for _ in $(seq 1 $MAX_RETRIES); do
-        if ls /tmp/ | grep 'ssh-' ; then
-            export SSH_AUTH_SOCK=$(ls /tmp/ssh-*/*agent* | head -n1)
+        if ls $SSH_SOCK_DIR | grep 'ssh-' ; then
+            export SSH_AUTH_SOCK=$(ls $SSH_SOCK_DIR/ssh-*/*agent* | head -n1)
             echo "Got SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
             break
         else
