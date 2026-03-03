@@ -17,12 +17,12 @@ from pathlib import Path
 from os import environ
 from sys import exit, argv
 
-CONFIG_PATH = argv[1] # /etc/ssh.orig/key-mappings.yaml
-AUTHORIZED_KEYS_PATH = argv[2] # /home/sshd-user/.ssh/authorized_keys
+CONFIG_PATH = Path(argv[1])  # eg. /etc/ssh.orig/key-mappings.yaml
+AUTHORIZED_KEYS_PATH = Path(argv[2]) # eg. /home/sshd-user/.ssh/authorized_keys
 INSTANCE = environ['CE_INSTANCE']
 
 with open(CONFIG_PATH) as f:
-    config = yaml.load(f.read())
+    config = yaml.load(f.read(), Loader=yaml.Loader)
 
 # Figure out to which instance our key belongs
 # Instance dict is in the format key_name : instance
