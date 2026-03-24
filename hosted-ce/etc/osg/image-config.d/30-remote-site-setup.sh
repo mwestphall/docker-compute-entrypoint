@@ -232,8 +232,11 @@ test_remote_connect () {
     SSH_SOCK_DIR=/etc/condor-ce/sshd-sock
     for _ in $(seq 1 $MAX_RETRIES); do
         if ls $SSH_SOCK_DIR | grep 'ssh-' ; then
-            export SSH_AUTH_SOCK=$(ls $SSH_SOCK_DIR/ssh-*/*agent* | head -n1)
-            echo "Got SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
+            TARGET=$(ls $SSH_SOCK_DIR/ssh-*/*agent* | head -n1)
+            LINK=$SSH_SOCK_DIR/auth-sock
+            ln -s "$TARGET" "$LINK"
+            export SSH_AUTH_SOCK="$LINK"
+            echo "Got SSH_AUTH_SOCK: $LINK -> $TARGET"
             break
         else
             echo "No auth socket found yet, retrying in 10 seconds..."
