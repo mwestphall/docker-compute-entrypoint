@@ -4,11 +4,7 @@ Util script to copy the public key given in a yaml ConfigMap into the
 authorized_hosts file for the sshd daemon user. Assumes config in the
 form of
 
-
-instances:
-  key_name_1: instance_1
-  key_name_2: instance_2
-publick_keys:
+public_keys:
   key_name_1: pubkey_1
   key_name_1: pubkey_2
 '''
@@ -20,26 +16,17 @@ from sys import exit, argv
 CONFIG_PATH = Path(argv[1])  # eg. /etc/ssh.orig/key-mappings.yaml
 AUTHORIZED_KEYS_PATH = Path(argv[2]) # eg. /home/sshd-user/.ssh/authorized_keys
 INSTANCE = environ['CE_INSTANCE']
+AUTHORIZED_KEY = environ['AUTHORIZED_KEY']
 
 with open(CONFIG_PATH) as f:
     config = yaml.load(f.read(), Loader=yaml.Loader)
 
-# Figure out to which instance our key belongs
-# Instance dict is in the format key_name : instance
-instances: dict[str, str] = config['instances']
-for key_name, instance in instances.items():
-    if instance == INSTANCE:
-        break
-else:
-    print(f"Fatal: No key name found for instance {INSTANCE}.")
-    exit(1)
-
 AUTHORIZED_KEYS_PATH.parent.mkdir(parents=True, exist_ok=True)
 pubkeys: dict[str, str] = config['public_keys']
-pubkey = pubkeys.get(key_name)
+pubkey = pubkeys.get(AUTHORIZED_KEY)
 
 if not pubkey:
-    print(f"Fatal: No public key found for key {key_name}")
+    print(f"Fatal: No public key found for key {AUTHORIZED_KEY}")
     exit(1)
 
 with open(AUTHORIZED_KEYS_PATH, 'w') as keyf:
